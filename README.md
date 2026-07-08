@@ -10,7 +10,7 @@
 
 ---
 
-## 📖 Overview
+## 📖 Overviews
 
 **GlowUp AI** is a full-stack AI application that provides personalized transformation recommendations by analyzing user photos and profiles. The system combines **Computer Vision**, **Retrieval-Augmented Generation (RAG)**, and **Fine-tuned Transformers** to deliver customized advice across skincare, fitness, nutrition, and lifestyle domains.
 
