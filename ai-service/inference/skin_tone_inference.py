@@ -1,22 +1,6 @@
 import torch
 from PIL import Image
 
-# Import internal modular components
-from models.cnn import CNN
-from utils.classes import SKIN_TONE_CLASSES
-from utils.preprocess import preprocess_image
-from utils.confidence import get_prediction
-from config import SKIN_TONE_MODEL
-
-# ==========================================
-# Device
-# ==========================================
-
-device =  torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-import torch
-from PIL import Image
-
 # Internal Imports
 from models.cnn import CNN
 from utils.classes import SKIN_TONE_CLASSES
@@ -33,12 +17,18 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Load Model (Runs Once)
 # ==========================================
 
-skin_model = CNN(num_classses=len(SKIN_TONE_CLASSES))
+skin_model = CNN(num_classes=len(SKIN_TONE_CLASSES))
+
 skin_model.load_state_dict(
-    torch.load(SKIN_TONE_MODEL, map_location=device)
+    torch.load(
+        "models/skin_tone_model.pth",
+        map_location=device
+    )
 )
+
 skin_model.to(device)
 skin_model.eval()
+
 
 # ==========================================
 # Prediction Function
@@ -76,4 +66,3 @@ def predict_skin_tone(image: Image.Image):
     )
 
     return result
-    
