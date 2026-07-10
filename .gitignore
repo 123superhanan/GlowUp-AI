@@ -21,6 +21,8 @@ __pycache__/
 venv/
 *.h5
 *.pkl
+*.pth
+*.ipynb
 
 # IDE
 .vscode/
