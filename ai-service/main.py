@@ -1,27 +1,27 @@
-from fastapi import FastAPI, File, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
+from fastapi import FastAPI
+from routers.skin_tone import router as skin_tone_router
 
-app = FastAPI(title="StockWise AI Service")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+app = FastAPI(
+    title="GlowUp AI Service",
+    version="1.0.0",
+    description="AI Inference Microservice"
 )
 
+
+@app.get("/")
+def root():
+    return {
+        "success": True,
+        "message": "GlowUp AI Service is running."
+    }
+
+
 @app.get("/health")
-async def health():
-    return {"status": "ok", "service": "ai-service"}
-
-@app.post("/detect-receipt")
-async def detect_receipt(file: UploadFile = File(...)):
-    # Placeholder - ML model will go here
-    return {"detected": True, "message": "Receipt detection coming soon"}
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+def health():
+    return {
+        "success": True,
+        "status": "healthy"
+    }
 
 
+app.include_router(skin_tone_router)
