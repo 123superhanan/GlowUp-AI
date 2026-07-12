@@ -1,0 +1,371 @@
+
+Your architecture should look like this:
+
+```text
+                    React Native App
+                           │
+                    JWT Authentication
+                           │
+                           ▼
+                  Node.js Backend (Main API)
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+        ▼                  ▼                  ▼
+   PostgreSQL         Redis Cache        FastAPI AI Service
+        │                                     │
+        │                                     │
+        ▼                                     ▼
+User Data                        CNN + RAG + Vector DB
+History
+Notifications
+Profile
+```
+
+## Node.js Backend Responsibilities
+
+```text
+Authentication
+Authorization
+User Profile
+Prediction History
+Notifications
+Rate Limiting
+Validation
+Logging
+Caching
+API Documentation
+Calling AI Service
+```
+
+The AI service should never access your main database directly.
+
+Instead:
+
+```text
+React Native
+
+↓
+
+Node Backend
+
+↓
+
+FastAPI
+
+↓
+
+Prediction
+
+↓
+
+Node Backend
+
+↓
+
+Save to PostgreSQL
+
+↓
+
+Return Response
+```
+
+---
+
+## Suggested Folder Structure
+
+```text
+backend/
+│
+├── src/
+│
+├── config/
+│   ├── db.ts
+│   ├── redis.ts
+│   ├── env.ts
+│   └── logger.ts
+│
+├── middleware/
+│   ├── auth.ts
+│   ├── rateLimiter.ts
+│   ├── validate.ts
+│   ├── errorHandler.ts
+│   ├── notFound.ts
+│   └── upload.ts
+│
+├── modules/
+│
+│   ├── auth/
+│   ├── user/
+│   ├── prediction/
+│   ├── history/
+│   ├── notification/
+│   └── profile/
+│
+├── services/
+│   ├── ai.service.ts
+│   ├── notification.service.ts
+│   └── storage.service.ts
+│
+├── prisma/
+│
+├── routes/
+│
+├── utils/
+│
+├── app.ts
+└── server.ts
+```
+
+---
+
+## Database Design
+
+### User
+
+```text
+id
+name
+email
+password
+avatar
+gender
+createdAt
+updatedAt
+```
+
+---
+
+### Prediction History
+
+```text
+id
+userId
+skinTone
+faceShape
+bodyType
+skinCondition
+recommendation
+imageUrl
+createdAt
+```
+
+---
+
+### Notifications
+
+```text
+id
+userId
+title
+message
+isRead
+createdAt
+```
+
+---
+
+## Authentication
+
+```
+JWT Access Token
+JWT Refresh Token
+bcrypt Password Hashing
+Role Based Authorization
+```
+
+---
+
+## Middleware
+
+```
+Authentication
+
+↓
+
+Rate Limiter
+
+↓
+
+Validation
+
+↓
+
+Controller
+
+↓
+
+Service
+
+↓
+
+Database
+```
+
+---
+
+## Logging
+
+Use:
+
+```
+Winston
+Morgan
+```
+
+Log:
+
+* Requests
+* Errors
+* AI response time
+* Database errors
+
+---
+
+## Observability
+
+Initially:
+
+* Winston
+* Morgan
+* Request IDs
+* Error logs
+
+Later you can add:
+
+* OpenTelemetry
+* Grafana
+* Prometheus
+
+---
+
+## Security
+
+* Helmet
+* CORS
+* Rate Limiting
+* Input Validation (Zod)
+* JWT
+* bcrypt
+* Environment Variables
+* File Size Limits
+
+---
+
+## Rate Limiting
+
+```
+Login
+
+5/minute
+
+Prediction
+
+20/minute
+
+Register
+
+3/minute
+```
+
+Redis-backed rate limiting is even better if you deploy multiple instances.
+
+---
+
+## AI Communication
+
+```
+POST /predict
+
+↓
+
+Node
+
+↓
+
+FastAPI
+
+↓
+
+Prediction
+
+↓
+
+Node
+
+↓
+
+Store History
+
+↓
+
+Return Response
+```
+
+The Node backend never performs AI inference. It only orchestrates requests and persists data.
+
+---
+
+## Notifications
+
+```
+Prediction Completed
+
+↓
+
+Save Notification
+
+↓
+
+User Opens App
+
+↓
+
+Fetch Notifications
+```
+
+---
+
+## Request Flow
+
+```text
+Mobile App
+      │
+      ▼
+Express Route
+      │
+      ▼
+JWT Middleware
+      │
+      ▼
+Rate Limiter
+      │
+      ▼
+Validation
+      │
+      ▼
+Controller
+      │
+      ▼
+Service
+      │
+      ├──────────────► PostgreSQL
+      │
+      └──────────────► FastAPI AI Service
+                              │
+                              ▼
+                     CNN + RAG + Ollama
+                              │
+                              ▼
+                        Prediction Result
+      │
+      ▼
+Save History
+      │
+      ▼
+Create Notification
+      │
+      ▼
+Return Response
+```
+
