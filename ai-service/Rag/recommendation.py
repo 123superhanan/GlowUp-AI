@@ -1,7 +1,9 @@
 import os
-from retriever import Retriever
-from prompt_builder import PromptBuilder
-from generator import Generator
+# Change these from absolute imports to relative imports (add a dot .)
+from .retriever import Retriever
+from .prompt_builder import PromptBuilder
+from .generator import Generator
+
 
 
 class RecommendationService:

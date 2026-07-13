@@ -44,17 +44,22 @@ async def predict(file: UploadFile = File(...)):
         # 2. Load Image
         image = await load_image(file)
 
-        # 3. Computer Vision Prediction (e.g., returns "OVAL FACE" or "HEART FACE")
+        # 3. Computer Vision Prediction
         predicted_shape = predict_face_shape(image)
 
-        # 4. AI Grounded RAG Query Generation
-        # Construct an automated background question based on the raw vision model prediction
-        rag_query = f"What are the best hairstyles, beard styles, and glasses for a {predicted_shape} structure?"
-        
-        # Pull text from ChromaDB and feed it to llama3.2:3b dynamically
-        ai_recommendations = ai_service.ask(rag_query, top_k=2)
+        # 4. Clean Label Extraction
+        # Safely extract the raw string classification even if it's nested inside a dictionary
+        shape_label = (
+            predicted_shape.get("class", "Oval")
+            if isinstance(predicted_shape, dict)
+            else predicted_shape
+        )
 
-        # 5. Return the full payload back to Node.js
+        # 5. Dynamic RAG Query Processing
+        # Pass the raw classification label string directly to let the RAG engine query organically
+        ai_recommendations = ai_service.ask(shape_label, top_k=2)
+
+        # 6. Return the full payload back to Node.js
         return {
             "success": True,
             "prediction": predicted_shape,

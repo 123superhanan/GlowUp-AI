@@ -2,7 +2,7 @@ import os
 import chromadb
 from chromadb.config import Settings
 from typing import List, Dict, Any
-from embeddings import Embedder
+from .embeddings import Embedder
 
 # Get the folder where retriever.py actually lives to secure absolute local path lookup
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
