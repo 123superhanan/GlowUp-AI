@@ -8,28 +8,32 @@ from typing import List, Dict, Any
 class VectorStore:
 
     def __init__(
-    self,
-    db_path: str = None,
-    collection_name: str = "glowup_ai"
+        self,
+        db_path: str = None,
+        collection_name: str = "glowup_ai"
     ):
         print("=" * 60)
         print("INITIALIZING CHROMADB")
         print("=" * 60)
 
-    # Current directory (Rag/)
+        # 1. Establish precise absolute workspace root directory paths
         current_dir = os.path.dirname(os.path.abspath(__file__))
 
-        # Default database location: Rag/chroma_db
         if db_path is None:
-            db_path = os.path.join(current_dir, "chroma_db")
-
-        # Create the folder if it doesn't exist
+            # Prevent stacking 'Rag' if current_dir already terminates in it
+            if os.path.basename(current_dir).lower() == "rag":
+                db_path = os.path.join(current_dir, "chroma_db")
+            else:
+                db_path = os.path.join(current_dir, "Rag", "chroma_db")
+        
+        # 2. Normalize separator slashes to prevent OS specific replication bugs
+        db_path = os.path.normpath(db_path)
         os.makedirs(db_path, exist_ok=True)
 
         self.client = chromadb.PersistentClient(
-        path=db_path,
-        settings=Settings(anonymized_telemetry=False)
-    )
+            path=db_path,
+            settings=Settings(anonymized_telemetry=False)
+        )
 
         self.collection = self.client.get_or_create_collection(
             name=collection_name
@@ -53,10 +57,8 @@ class VectorStore:
         metadatas = []
 
         for index, chunk in enumerate(embedded_chunks):
-            # Fallback to prevent missing key errors
             file_name = chunk["metadata"].get("file_name", "unknown_source")
             
-            # Generate a deterministic unique ID based on file origin and array positioning
             unique_str = f"{file_name}_chunk_{index}"
             chunk_id = hashlib.md5(unique_str.encode("utf-8")).hexdigest()
             ids.append(chunk_id)
@@ -65,7 +67,6 @@ class VectorStore:
             embeddings.append(chunk["embedding"])
             metadatas.append(chunk["metadata"])
 
-        # Add records to the local ChromaDB segment
         self.collection.add(
             ids=ids,
             documents=documents,
@@ -95,7 +96,7 @@ class VectorStore:
 
 if __name__ == "__main__":
     # Integration test syncing loader, chunker, embedder, and vector storage components
-    from document_loader import load_md_documents
+    from document_loader import load_mds_documents
     from chunker import chunk_markdown_by_structure
     from embeddings import Embedder
 
@@ -103,7 +104,7 @@ if __name__ == "__main__":
     DATA_DIR = os.path.join(CURRENT_DIR, "documents")
 
     # 1. Pipeline: Ingest raw markdown
-    docs = load_md_documents(DATA_DIR)
+    docs = load_mds_documents(DATA_DIR)
 
     if docs:
         # 2. Pipeline: Structural paragraph chunking

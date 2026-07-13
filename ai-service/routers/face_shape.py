@@ -1,14 +1,21 @@
-from fastapi import APIRouter, UploadFile, File
+import os
+from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 
 from utils.validation import validate_image
 from utils.image_loader import load_image
-from inference.face_shape_infernce import  predict_face_shape
+from inference.face_shape_infernce import predict_face_shape
+
+# Import your unified RAG service layer
+from Rag.recommendation import RecommendationService
 
 router = APIRouter(
     prefix="/face-shape",
     tags=["Face Shape"]
 )
+
+# Initialize the RAG service to use your active local model tag
+ai_service = RecommendationService(model_name="llama3.2:3b")
 
 
 @router.get("/")
@@ -22,12 +29,9 @@ def health_check():
 
 @router.post("/predict")
 async def predict(file: UploadFile = File(...)):
-
     try:
-
-        # Validate Image
+        # 1. Validate Image
         is_valid, message = await validate_image(file)
-
         if not is_valid:
             return JSONResponse(
                 status_code=400,
@@ -37,19 +41,27 @@ async def predict(file: UploadFile = File(...)):
                 }
             )
 
-        # Load Image
+        # 2. Load Image
         image = await load_image(file)
 
-        # Predict
-        result = predict_face_shape(image)
+        # 3. Computer Vision Prediction (e.g., returns "OVAL FACE" or "HEART FACE")
+        predicted_shape = predict_face_shape(image)
 
+        # 4. AI Grounded RAG Query Generation
+        # Construct an automated background question based on the raw vision model prediction
+        rag_query = f"What are the best hairstyles, beard styles, and glasses for a {predicted_shape} structure?"
+        
+        # Pull text from ChromaDB and feed it to llama3.2:3b dynamically
+        ai_recommendations = ai_service.ask(rag_query, top_k=2)
+
+        # 5. Return the full payload back to Node.js
         return {
             "success": True,
-            "prediction": result
+            "prediction": predicted_shape,
+            "recommendations": ai_recommendations
         }
 
     except Exception as e:
-
         return JSONResponse(
             status_code=500,
             content={
