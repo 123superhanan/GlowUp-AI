@@ -7,7 +7,7 @@ from utils.image_loader import load_image
 from inference.skin_tone_inference import predict_skin_tone
 
 # Import your unified RAG service layer
-from Rag.recommendation import RecommendationService
+# from Rag.recommendation import RecommendationService
 
 router = APIRouter(
     prefix="/skin-tone",
@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 # Initialize the RAG service to use your active local model tag
-ai_service = RecommendationService(model_name="llama3.2:3b")
+# ai_service = RecommendationService(model_name="llama3.2:3b")
 
 
 @router.get("/")
@@ -57,13 +57,13 @@ async def predict(file: UploadFile = File(...)):
 
         # 5. Dynamic RAG Query Processing
         # Pass the raw classification label string directly to let the RAG engine query organically
-        ai_recommendations = ai_service.ask(tone_label, top_k=2)
+        # ai_recommendations = ai_service.ask(tone_label, top_k=2)
 
         # 6. Return the full payload back to Node.js
         return {
             "success": True,
             "prediction": skin_tone_result,
-            "recommendations": ai_recommendations
+            # "recommendations": ai_recommendations
         }
 
     except Exception as e:

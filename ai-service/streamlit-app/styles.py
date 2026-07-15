@@ -205,7 +205,7 @@ def load_css():
             border-radius: 10px;
             font-size: 15px;
             font-weight: 600;
-            background: #238636;
+            background: #FA008A;
             color: #FFFFFF;
             border: none;
         }
