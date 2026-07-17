@@ -1,6 +1,15 @@
 import express from "express";
-import { loginUser, registerUser } from "../modules/auth/auth.controller.js";
-// Import middleware (we'll use it later)
+
+// Import Controllers
+import {
+  loginUser,
+  logoutAllDevices,
+  logoutUser,
+  registerUser,
+} from "../modules/auth/auth.controller.js";
+
+// Import Middleware
+import { authenticate } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -8,15 +17,12 @@ const router = express.Router();
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 
-// ====================== PROTECTED ROUTES (Example) ======================
+// ====================== PROTECTED ROUTES ======================
+router.post("/logout", authenticate, logoutUser); // Logout current session
+router.post("/logout-all", authenticate, logoutAllDevices); // Logout from all devices
+
+// Example of future protected routes:
 // router.get("/profile", authenticate, getProfile);
 // router.put("/profile", authenticate, updateProfile);
-
-// ====================== FUTURE ENDPOINTS ======================
-/*
-router.post("/refresh", refreshSessionTokens);
-router.post("/logout", logoutUser);
-router.post("/logout-all", logoutAllDevices);
-*/
 
 export default router;
