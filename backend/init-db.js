@@ -1,32 +1,38 @@
-import { pool, query } from "./config/db.js";
+import { query } from "./config/db.js";
 
 async function initializeDatabase() {
-  console.log("Connecting to Neon DB to initialize schemas...");
+  console.log(" Initializing Database...");
 
+  // ==================== USERS TABLE ====================
   const createUsersTable = `
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
       name VARCHAR(100) NOT NULL,
       email VARCHAR(255) UNIQUE NOT NULL,
       password VARCHAR(255) NOT NULL,
+      role VARCHAR(50) DEFAULT 'user',
       avatar TEXT,
       gender VARCHAR(50),
+      token_version INT DEFAULT 1,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
 
-  // NEW: Refresh Tokens Table
+  // ==================== REFRESH TOKENS TABLE ====================
   const createRefreshTokensTable = `
     CREATE TABLE IF NOT EXISTS refresh_tokens (
       id SERIAL PRIMARY KEY,
       user_id INT REFERENCES users(id) ON DELETE CASCADE,
-      token TEXT UNIQUE NOT NULL,
+      token_hash TEXT UNIQUE NOT NULL,
+      ip_address VARCHAR(50),
+      user_agent TEXT,
       expires_at TIMESTAMP NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
 
+  // ==================== PREDICTION HISTORY TABLE ====================
   const createPredictionHistoryTable = `
     CREATE TABLE IF NOT EXISTS prediction_history (
       id SERIAL PRIMARY KEY,
@@ -41,6 +47,7 @@ async function initializeDatabase() {
     );
   `;
 
+  // ==================== NOTIFICATIONS TABLE ====================
   const createNotificationsTable = `
     CREATE TABLE IF NOT EXISTS notifications (
       id SERIAL PRIMARY KEY,
@@ -56,21 +63,18 @@ async function initializeDatabase() {
     await query(createUsersTable);
     console.log(" 'users' table ready.");
 
-    // Run the new table query
     await query(createRefreshTokensTable);
-    console.log("'refresh_tokens' table ready.");
+    console.log(" 'refresh_tokens' table ready.");
 
     await query(createPredictionHistoryTable);
-    console.log("'prediction_history' table ready.");
+    console.log(" 'prediction_history' table ready.");
 
     await query(createNotificationsTable);
     console.log(" 'notifications' table ready.");
 
-    console.log(" Database initialization completed successfully!");
+    console.log(" All database tables initialized successfully!");
   } catch (err) {
-    console.error(" Error initializing database tables:", err);
-  } finally {
-    await pool.end();
+    console.error(" Error initializing database:", err);
   }
 }
 

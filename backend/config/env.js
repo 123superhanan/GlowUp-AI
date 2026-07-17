@@ -12,6 +12,7 @@ for (const envName of requiredEnv) {
 export const env = {
   port: parseInt(process.env.PORT || "5000", 10),
   dbUrl: process.env.DATABASE_URL,
-  jwtSecret: process.env.JWT_SECRET,
+  accessTokenSecret: process.env.ACCESS_TOKEN_SECRET,
+  refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,
   nodeEnv: process.env.NODE_ENV || "development",
 };
