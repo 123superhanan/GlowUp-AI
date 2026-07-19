@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Alert,
@@ -10,9 +11,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext"; // Adjusted relative path to your context
 
-const RegisterScreen = ({ navigation }) => {
+export default function RegisterScreen() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,6 +23,7 @@ const RegisterScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const { register } = useAuth();
+  const router = useRouter(); // Core router hook replacement
 
   const handleRegister = async () => {
     if (!formData.name || !formData.email || !formData.password) {
@@ -39,7 +41,7 @@ const RegisterScreen = ({ navigation }) => {
       });
 
       Alert.alert("Success", "Account created successfully!", [
-        { text: "Go to Login", onPress: () => navigation.navigate("Login") },
+        { text: "Go to Login", onPress: () => router.replace("/LoginScreen") },
       ]);
     } catch (error) {
       Alert.alert(
@@ -113,17 +115,17 @@ const RegisterScreen = ({ navigation }) => {
           disabled={loading}
         >
           <Text style={styles.buttonText}>
-            {loading ? "Creating Account..." : "RegisterScreen"}
+            {loading ? "Creating Account..." : "Register"}
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
+        <TouchableOpacity onPress={() => router.push("/LoginScreen")}>
           <Text style={styles.link}>Already have an account? Login</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
@@ -153,13 +155,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   genderButtonActive: {
-    backgroundColor: "#6C63FF",
-    borderColor: "#6C63FF",
+    backgroundColor: "#FF6B6B",
+    borderColor: "#FF6B6B",
   },
   genderText: { fontSize: 14 },
   genderTextActive: { color: "white", fontSize: 14 },
   registerButton: {
-    backgroundColor: "#6C63FF",
+    backgroundColor: "#FF6B6B",
     padding: 16,
     borderRadius: 10,
     marginTop: 10,
@@ -173,9 +175,7 @@ const styles = StyleSheet.create({
   link: {
     textAlign: "center",
     marginTop: 20,
-    color: "#6C63FF",
+    color: "#FF6B6B",
     fontSize: 15,
   },
 });
-
-export default RegisterScreen;

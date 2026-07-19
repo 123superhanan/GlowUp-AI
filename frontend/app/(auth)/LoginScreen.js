@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Alert,
@@ -9,12 +10,13 @@ import {
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 
-const LoginScreen = ({ navigation }) => {
+export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
+  const router = useRouter(); // Core router hook replacement
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -25,7 +27,8 @@ const LoginScreen = ({ navigation }) => {
     setLoading(true);
     try {
       await login(email, password);
-      navigation.replace("GlowUpDashboard");
+      // Replaces screen and clears history array
+      router.replace("/(tabs)");
     } catch (error) {
       Alert.alert(
         "Login Failed",
@@ -67,12 +70,13 @@ const LoginScreen = ({ navigation }) => {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("RegisterScreen")}>
+      {/* Pushes register screen onto the stack file path */}
+      <TouchableOpacity onPress={() => router.push("/RegisterScreen")}>
         <Text style={styles.link}>Don't have an account? Register</Text>
       </TouchableOpacity>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: "center" },
@@ -90,7 +94,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   button: {
-    backgroundColor: "#6C63FF",
+    backgroundColor: "#FF6B6B",
     padding: 15,
     borderRadius: 10,
     marginTop: 10,
@@ -98,5 +102,3 @@ const styles = StyleSheet.create({
   buttonText: { color: "white", textAlign: "center", fontWeight: "bold" },
   link: { textAlign: "center", marginTop: 20, color: "#6C63FF" },
 });
-
-export default LoginScreen;
