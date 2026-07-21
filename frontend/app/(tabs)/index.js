@@ -20,6 +20,9 @@ export default function HomeIndex() {
     router.replace("/(auth)/LoginScreen");
   };
 
+  const gotoUpoad = () => {
+    router.replace("/PhotoUpload");
+  };
   return (
     <SafeAreaView style={styles.container}>
       {/* Real Top Header Row with Hamburger Menu */}
@@ -48,6 +51,10 @@ export default function HomeIndex() {
 
         <Pressable onPress={gotoLogin} style={styles.logoutButton}>
           <Text style={styles.logoutText}>Sign Out</Text>
+        </Pressable>
+
+        <Pressable onPress={gotoUpoad} style={styles.logoutButton}>
+          <Text style={styles.logoutText}>PhotoUpload</Text>
         </Pressable>
       </View>
     </SafeAreaView>

@@ -5,6 +5,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import { query } from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
+import predictRoute from "./routes/faceShape.routes.js";
 dotenv.config();
 
 const app = express();
@@ -24,6 +25,7 @@ app.use(cookieParser());
 
 // ====================== ROUTES ======================
 app.use("/api/auth", authRoutes);
+app.use("/api/predict", predictRoute);
 
 // Health Check Route
 app.get("/health", async (req, res) => {
