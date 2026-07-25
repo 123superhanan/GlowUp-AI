@@ -14,16 +14,7 @@ export default function Onboarding() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         {/* Brand Header */}
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>GLOWUP AI</Text>
-        </View>
-
-        {/* Central Stylized Visual Frame */}
-        <View style={styles.heroFrame}>
-          <View style={styles.circleOuter}>
-            <View style={styles.circleInner} />
-          </View>
-        </View>
+        <Text style={styles.brandText}>GLOWUP AI</Text>
 
         {/* Typography Section */}
         <View style={styles.textContainer}>
@@ -34,12 +25,12 @@ export default function Onboarding() {
           </Text>
         </View>
 
-        {/* Form Interactive Controls */}
+        {/* Action Controls */}
         <View style={styles.buttonGroup}>
           <TouchableOpacity
             style={styles.primaryBtn}
             onPress={() => router.push("/(auth)/RegisterScreen")}
-            activeOpacity={0.9}
+            activeOpacity={0.8}
           >
             <Text style={styles.primaryText}>Get Started</Text>
           </TouchableOpacity>
@@ -47,7 +38,7 @@ export default function Onboarding() {
           <TouchableOpacity
             style={styles.secondaryBtn}
             onPress={() => router.push("/(auth)/LoginScreen")}
-            activeOpacity={0.7}
+            activeOpacity={0.6}
           >
             <Text style={styles.secondaryText}>I already have an account</Text>
           </TouchableOpacity>
@@ -60,77 +51,37 @@ export default function Onboarding() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF8F9", // Seamless signature off-white pink canvas
+    backgroundColor: "#FFFFFF",
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingTop: 32,
     paddingBottom: 24,
     justifyContent: "space-between",
-    alignItems: "center",
   },
-  badge: {
-    backgroundColor: "#FFF0F3",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#FFD3DC",
-  },
-  badgeText: {
-    color: "#FF4D6D",
+  brandText: {
+    fontSize: 14,
     fontWeight: "800",
-    fontSize: 12,
-    letterSpacing: 1.5,
-  },
-  heroFrame: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  },
-  circleOuter: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#FF7597",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 4,
-  },
-  circleInner: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: "#FFF0F3",
-    borderWidth: 2,
-    borderColor: "#FFD3DC",
-    borderStyle: "dashed",
+    color: "#000000",
+    letterSpacing: 2,
   },
   textContainer: {
-    alignItems: "center",
-    marginBottom: 32,
-    paddingHorizontal: 8,
+    marginVertical: "auto",
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: "800",
-    color: "#2B2D42",
-    textAlign: "center",
+    color: "#000000",
     marginBottom: 12,
     letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 15,
-    color: "#8D99AE",
-    textAlign: "center",
-    lineHeight: 22,
-    fontWeight: "500",
+    fontSize: 16,
+    color: "#000000",
+    lineHeight: 24,
+    fontWeight: "400",
+    opacity: 0.7,
   },
   buttonGroup: {
     width: "100%",
@@ -139,14 +90,9 @@ const styles = StyleSheet.create({
   primaryBtn: {
     width: "100%",
     backgroundColor: "#FF4D6D",
-    paddingVertical: 16,
-    borderRadius: 16,
+    paddingVertical: 18,
+    borderRadius: 12,
     alignItems: "center",
-    shadowColor: "#FF4D6D",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 3,
   },
   primaryText: {
     color: "#FFFFFF",
@@ -155,12 +101,12 @@ const styles = StyleSheet.create({
   },
   secondaryBtn: {
     width: "100%",
-    paddingVertical: 16,
+    paddingVertical: 14,
     alignItems: "center",
   },
   secondaryText: {
-    color: "#FF4D6D",
+    color: "#000000",
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: "600",
   },
 });

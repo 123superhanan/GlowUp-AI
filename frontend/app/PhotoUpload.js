@@ -1,23 +1,35 @@
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAuth } from "../context/AuthContext"; // Confirmed dynamic context mapping
+import { useAuth } from "../context/AuthContext";
 
 export default function PhotoUpload() {
+  const router = useRouter();
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [prediction, setPrediction] = useState(null);
 
-  // 🚀 FIXED: Destructure 'accessToken' directly to match your true AuthContext provider schema!
   const { accessToken } = useAuth();
+
+  // Safe Back Navigation Handler
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(tabs)/index");
+    }
+  };
 
   const pickImage = async () => {
     const permissionResult =
@@ -34,7 +46,7 @@ export default function PhotoUpload() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: 1, // Square bounding ratio
+      aspect: [1, 1],
       quality: 1,
     });
 
@@ -49,7 +61,6 @@ export default function PhotoUpload() {
       return;
     }
 
-    // Protect network route against null tokens
     if (!accessToken) {
       Alert.alert(
         "Authentication Error",
@@ -77,7 +88,7 @@ export default function PhotoUpload() {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${accessToken}`, //  FIXED: Inject the matched token variable
+            Authorization: `Bearer ${accessToken}`,
             Accept: "application/json",
           },
           body: formData,
@@ -111,107 +122,270 @@ export default function PhotoUpload() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Face Shape Analyzer</Text>
-
-      {/* 🚀 FIXED: Status color condition maps cleanly to your verified token state */}
-      <Text style={styles.tokenStatus}>
-        Token Validation Status:{" "}
-        {accessToken ? "🟢 Authorized Active Token" : "🔴 Missing Auth Token"}
-      </Text>
-
-      <TouchableOpacity style={styles.selectButton} onPress={pickImage}>
-        <Text style={styles.buttonText}>Pick an Image from Gallery</Text>
-      </TouchableOpacity>
-
-      {image && (
-        <Image source={{ uri: image.uri }} style={styles.imagePreview} />
-      )}
-
-      {image && !loading && (
+    <SafeAreaView style={styles.container}>
+      {/* Header Navigation */}
+      <View style={styles.header}>
         <TouchableOpacity
-          style={styles.uploadButton}
-          onPress={uploadAndPredict}
+          style={styles.backButton}
+          onPress={handleBack}
+          activeOpacity={0.7}
         >
-          <Text style={styles.buttonText}>Analyze & Save Prediction</Text>
+          <Text style={styles.backArrow}>←</Text>
         </TouchableOpacity>
-      )}
+        <Text style={styles.headerTitle}>Analyzer</Text>
+        <View
+          style={[
+            styles.statusDot,
+            { backgroundColor: accessToken ? "#10B981" : "#EF4444" },
+          ]}
+        />
+      </View>
 
-      {loading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FF6B6B" />
-          <Text style={styles.loadingText}>
-            Running vision inference model...
+      {/* Scrollable Container to prevent empty page truncation */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.titleSection}>
+          <Text style={styles.title}>Face Shape Analysis</Text>
+          <Text style={styles.subtitle}>
+            Upload a clear photo to run model inference and receive styled
+            recommendations.
           </Text>
         </View>
-      )}
 
-      {prediction && (
-        <View style={styles.resultsBox}>
-          <Text style={styles.resultTitle}>Database Output Result:</Text>
-          <Text style={styles.resultText}>
-            Face Shape: {prediction.face_shape}
-          </Text>
-          <Text style={styles.resultText}>Record ID: {prediction.id}</Text>
-          <Text style={styles.resultText}>
-            Recommendation: {prediction.recommendation}
-          </Text>
-        </View>
-      )}
-    </View>
+        {/* Upload Frame Card */}
+        <TouchableOpacity
+          style={styles.imageCard}
+          onPress={pickImage}
+          activeOpacity={0.9}
+        >
+          {image ? (
+            <Image source={{ uri: image.uri }} style={styles.imagePreview} />
+          ) : (
+            <View style={styles.placeholderContainer}>
+              <View style={styles.iconCircle}>
+                <Text style={styles.uploadIcon}>↑</Text>
+              </View>
+              <Text style={styles.placeholderText}>Tap to select photo</Text>
+              <Text style={styles.placeholderSubtext}>
+                JPG or PNG up to 10MB
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {/* Action Button */}
+        {image && !loading && (
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={uploadAndPredict}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.actionButtonText}>Analyze Image</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Loading Indicator */}
+        {loading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color="#111827" />
+            <Text style={styles.loadingText}>Analyzing facial features...</Text>
+          </View>
+        )}
+
+        {/* Database Output Result Card */}
+        {prediction && (
+          <View style={styles.resultsCard}>
+            <View style={styles.resultHeader}>
+              <Text style={styles.resultLabel}>DETECTED SHAPE</Text>
+              <Text style={styles.resultShape}>{prediction.face_shape}</Text>
+            </View>
+            <View style={styles.divider} />
+            <Text style={styles.recommendationTitle}>Recommendation</Text>
+            <Text style={styles.recommendationText}>
+              {prediction.recommendation}
+            </Text>
+            <Text style={styles.recordId}>ID: {prediction.id}</Text>
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#F8F9FA",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  backArrow: {
+    fontSize: 18,
+    color: "#111827",
+    fontWeight: "500",
+  },
+  headerTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#111827",
+    letterSpacing: -0.2,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 40,
+  },
+  titleSection: {
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#111827",
+    letterSpacing: -0.5,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    lineHeight: 20,
+  },
+  imageCard: {
+    width: "100%",
+    height: 280,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderStyle: "dashed",
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  imagePreview: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  placeholderContainer: {
+    alignItems: "center",
+  },
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  uploadIcon: {
+    fontSize: 18,
+    color: "#374151",
+    fontWeight: "600",
+  },
+  placeholderText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  placeholderSubtext: {
+    fontSize: 12,
+    color: "#9CA3AF",
+    marginTop: 2,
+  },
+  actionButton: {
+    backgroundColor: "#111827",
+    paddingVertical: 14,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 10, color: "#333" },
-  tokenStatus: { fontSize: 13, color: "#666", marginBottom: 20 },
-  selectButton: {
-    backgroundColor: "#6C63FF",
-    padding: 15,
-    borderRadius: 10,
-    width: "100%",
-    alignItems: "center",
-    marginBottom: 20,
+  actionButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "600",
   },
-  uploadButton: {
-    backgroundColor: "#FF6B6B",
-    padding: 15,
-    borderRadius: 10,
-    width: "100%",
+  loadingContainer: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+  },
+  loadingText: {
+    marginLeft: 10,
+    fontSize: 14,
+    color: "#4B5563",
+    fontWeight: "500",
+  },
+  resultsCard: {
+    marginTop: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  resultHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  resultLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#6B7280",
+    letterSpacing: 0.8,
+  },
+  resultShape: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#2563EB",
+    textTransform: "capitalize",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#F3F4F6",
+    marginVertical: 12,
+  },
+  recommendationTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 4,
+  },
+  recommendationText: {
+    fontSize: 14,
+    color: "#4B5563",
+    lineHeight: 20,
+  },
+  recordId: {
+    fontSize: 11,
+    color: "#9CA3AF",
     marginTop: 10,
   },
-  buttonText: { color: "white", fontWeight: "bold", fontSize: 16 },
-  imagePreview: {
-    width: 250,
-    height: 250,
-    borderRadius: 15,
-    marginVertical: 15,
-    resizeMode: "cover",
-  },
-  loadingContainer: { marginVertical: 20, alignItems: "center" },
-  loadingText: { marginTop: 10, color: "#666", fontWeight: "500" },
-  resultsBox: {
-    marginTop: 25,
-    padding: 15,
-    backgroundColor: "#f8f9fa",
-    borderRadius: 10,
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#e9ecef",
-  },
-  resultTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#2b2b2b",
-  },
-  resultText: { fontSize: 14, color: "#495057", marginBottom: 4 },
 });
