@@ -30,7 +30,7 @@ def load_vectorstore(persist_directory: str = "./chroma_db"):
     """
     Load existing Chroma vector store
     """
-    embeddings = OllamaEmbeddings(model="llama3.2")
+    embeddings = OllamaEmbeddings(model="all-minilm")
 
     vectorstore = Chroma(
         persist_directory=persist_directory,
