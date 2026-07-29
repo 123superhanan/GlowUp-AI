@@ -23,6 +23,7 @@ venv/
 *.pkl
 *.pth
 *.ipynb
+*.md
 
 # IDE
 .vscode/
