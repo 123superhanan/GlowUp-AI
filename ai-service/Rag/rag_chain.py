@@ -23,7 +23,7 @@ def create_rag_chain(vectorstore, model_name: str = "llama3.2:3b"):
 
     retriever = vectorstore.as_retriever(
         search_type="similarity",
-        search_kwargs={"k": 4}
+        search_kwargs={"k": 2}
     )
 
     prompt = ChatPromptTemplate.from_template("""

@@ -514,7 +514,6 @@ if prompt := st.chat_input("Ask about hairstyles, outfits, grooming..."):
     if st.session_state.uploaded_image:
         st.image(st.session_state.uploaded_image, width=140)
 
-    # Assistant header
     st.markdown(f'''
     <div class="chat-bubble-assistant">
         <div class="assistant-header">{BOT_SVG} GlowUP Assistant</div>
@@ -559,7 +558,6 @@ if prompt := st.chat_input("Ask about hairstyles, outfits, grooming..."):
                 elif data.get("type") == "done":
                     break
 
-        # Save final message
         st.session_state.messages.append({
             "role": "assistant",
             "content": full_answer,
@@ -578,76 +576,3 @@ if prompt := st.chat_input("Ask about hairstyles, outfits, grooming..."):
         st.error("Unable to connect to the server. Please make sure the backend is running.")
     except Exception as e:
         st.error(f"Something went wrong: {str(e)}")
-    # Save user message
-    user_msg = {
-        "role": "user",
-        "content": prompt,
-        "image": st.session_state.uploaded_image.getvalue() if st.session_state.uploaded_image else None
-    }
-    st.session_state.messages.append(user_msg)
-
-    # Display user message
-    st.markdown(f'<div class="chat-bubble-user">{prompt}</div>', unsafe_allow_html=True)
-    if st.session_state.uploaded_image:
-        st.image(st.session_state.uploaded_image, width=140)
-
-    with st.status("✨ GlowUP is thinking...", expanded=True) as status:
-        st.write("Analyzing your style profile...")
-        st.write("Searching fashion guides...")
-
-        try:
-            response = requests.post(
-                "http://localhost:8000/rag/ask",
-                json={
-                    "question": prompt,
-                    "face_shape": st.session_state.face_shape or None,
-                    "skin_tone": st.session_state.skin_tone or None,
-                    "body_type": st.session_state.body_type or None,
-                    "preferences": st.session_state.preferences or None
-                },
-                timeout=30
-            )
-            response.raise_for_status()
-            data = response.json()
-
-            answer = data.get("answer", "Sorry, I could not generate an answer.")
-            sources = data.get("sources", [])
-
-            status.update(label="✨ Ready!", state="complete", expanded=False)
-
-            # Save assistant message
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": answer,
-                "sources": sources
-            })
-
-            # Display assistant response
-            st.markdown(f'''
-            <div class="chat-bubble-assistant">
-                <div class="assistant-header">{BOT_SVG} GlowUP Assistant</div>
-                {answer}
-            </div>
-            ''', unsafe_allow_html=True)
-
-            if sources:
-                tags = "".join([f'<span class="source-tag">{DOC_SVG} {s}</span>' for s in sources])
-                st.markdown(f'''
-                <div class="sources-container">
-                    <span class="sources-label">Sources:</span> {tags}
-                </div>
-                ''', unsafe_allow_html=True)
-
-        except requests.exceptions.ConnectionError:
-            status.update(label="Connection failed", state="error")
-            st.error(" Unable to connect to the server. Please make sure the backend is running.")
-
-        except requests.exceptions.Timeout:
-            status.update(label="Timeout", state="error")
-            st.error(" The request timed out. Please try again.")
-
-        except Exception as e:
-            status.update(label="Error", state="error")
-            st.error(f" Something went wrong: {str(e)}")
-
-    st.rerun()
