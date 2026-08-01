@@ -47,23 +47,17 @@ async def predict(file: UploadFile = File(...)):
         # 3. Computer Vision Prediction
         skin_tone_result = predict_skin_tone(image)
 
-        # 4. Clean Label Extraction
-        # Safely extract the raw string classification even if it's nested inside a dictionary
         tone_label = (
             skin_tone_result.get("class", "Olive")
             if isinstance(skin_tone_result, dict)
             else skin_tone_result
         )
 
-        # 5. Dynamic RAG Query Processing
-        # Pass the raw classification label string directly to let the RAG engine query organically
-        # ai_recommendations = ai_service.ask(tone_label, top_k=2)
-
-        # 6. Return the full payload back to Node.js
+  
         return {
             "success": True,
             "prediction": skin_tone_result,
-            # "recommendations": ai_recommendations
+            
         }
 
     except Exception as e:

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from routers.skin_tone import router as skin_tone_router
 from routers.face_shape import router as face_shape_router
+from routers.rag import router as rag_router          
 
 app = FastAPI(
     title="GlowUp AI Service",
@@ -27,3 +28,4 @@ def health():
 
 app.include_router(skin_tone_router)
 app.include_router(face_shape_router)
+app.include_router(rag_router)                       # NEW

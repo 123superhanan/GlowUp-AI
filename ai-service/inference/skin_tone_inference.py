@@ -21,7 +21,7 @@ skin_model = CNN(num_classes=len(SKIN_TONE_CLASSES))
 
 skin_model.load_state_dict(
     torch.load(
-        "models/skin2.pth",
+        "models/skin_tone_model.pth",
         map_location=device
     )
 )
