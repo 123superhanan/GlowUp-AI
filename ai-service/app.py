@@ -390,83 +390,159 @@ if "preferences" not in st.session_state:
 if "uploaded_image" not in st.session_state:
     st.session_state.uploaded_image = None
 
-# ---------- SIDEBAR ----------
+def normalize_face_shape(value: str) -> str:
+    if not value:
+        return ""
+    v = str(value).strip().lower()
+    mapping = {
+        "oval": "Oval",
+        "round": "Round",
+        "square": "Square",
+        "rectangular": "Rectangular",
+        "oblong": "Rectangular",
+        "heart": "Heart",
+        "diamond": "Diamond",
+    }
+    return mapping.get(v, value.title())
+
+
+def normalize_skin_tone(value: str) -> str:
+    if not value:
+        return ""
+    v = str(value).strip().lower()
+    mapping = {
+        "fair": "Fair",
+        "light": "Light",
+        "white": "Fair",          # map model "White" -> Fair
+        "pale": "Fair",
+        "medium": "Medium",
+        "olive": "Olive",
+        "tan": "Tan",
+        "brown": "Tan",
+        "dark": "Deep",
+        "deep": "Deep",
+        "black": "Deep",
+    }
+    return mapping.get(v, value.title())
+
+
+FACE_OPTIONS = ["", "Oval", "Round", "Square", "Rectangular", "Heart", "Diamond"]
+SKIN_OPTIONS = ["", "Fair", "Light", "Medium", "Olive", "Tan", "Deep"]
+BODY_OPTIONS = ["", "Ectomorph", "Mesomorph", "Endomorph"]
+
+
 with st.sidebar:
-    # Logo and Header
     st.markdown(f'''
     <div class="sidebar-header">
-        <div class="sidebar-logo">
-            {LOGO_SVG}
-        </div>
+        <div class="sidebar-logo">{LOGO_SVG}</div>
         <div class="sidebar-title">GlowUP AI</div>
         <div class="sidebar-subtitle">Personal Style Assistant</div>
-        <div class="sidebar-status">
-            <span class="status-dot"></span>
-            Online
-        </div>
+        <div class="sidebar-status"><span class="status-dot"></span>Online</div>
     </div>
     ''', unsafe_allow_html=True)
 
-    # Profile Section
-    st.markdown('<div class="sidebar-section-title">✧ Your Style Profile</div>', unsafe_allow_html=True)
-    
-    st.session_state.face_shape = st.selectbox(
+    st.markdown('<div class="sidebar-section-title">Your Style Profile</div>', unsafe_allow_html=True)
+
+    # Keep values stable
+    if "face_shape" not in st.session_state:
+        st.session_state.face_shape = ""
+    if "skin_tone" not in st.session_state:
+        st.session_state.skin_tone = ""
+    if "body_type" not in st.session_state:
+        st.session_state.body_type = ""
+    if "preferences" not in st.session_state:
+        st.session_state.preferences = ""
+
+    st.selectbox(
         "Face Shape",
-        ["", "Oval", "Round", "Square", "Rectangular", "Heart", "Diamond"],
-        index=["", "Oval", "Round", "Square", "Rectangular", "Heart", "Diamond"].index(st.session_state.face_shape) if st.session_state.face_shape else 0
+        FACE_OPTIONS,
+        key="face_shape"
     )
-    
-    st.session_state.skin_tone = st.selectbox(
+
+    st.selectbox(
         "Skin Tone",
-        ["", "Fair", "Light", "Medium", "Olive", "Tan", "Deep"],
-        index=["", "Fair", "Light", "Medium", "Olive", "Tan", "Deep"].index(st.session_state.skin_tone) if st.session_state.skin_tone else 0
+        SKIN_OPTIONS,
+        key="skin_tone"
     )
-    
-    st.session_state.body_type = st.selectbox(
+
+    st.selectbox(
         "Body Type",
-        ["", "Ectomorph", "Mesomorph", "Endomorph"],
-        index=["", "Ectomorph", "Mesomorph", "Endomorph"].index(st.session_state.body_type) if st.session_state.body_type else 0
+        BODY_OPTIONS,
+        key="body_type"
     )
-    
-    st.session_state.preferences = st.text_input(
+
+    st.text_input(
         "Style Preferences",
-        value=st.session_state.preferences,
+        key="preferences",
         placeholder="messy, clean, professional..."
     )
-    
-    # Photo Upload
-    st.markdown('<div style="margin-top: 4px;">', unsafe_allow_html=True)
+
     uploaded_file = st.file_uploader(
         "Upload Photo",
         type=["jpg", "jpeg", "png"],
         label_visibility="collapsed"
     )
+
     if uploaded_file:
         st.session_state.uploaded_image = uploaded_file
         st.image(uploaded_file, use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    # Quick tips at bottom of sidebar
-    st.markdown('---')
-    st.markdown("""
-    <div style="font-size: 0.7rem; color: #64748b; text-align: center; padding: 0.5rem;">
-        <div style="margin-bottom: 4px;"> Quick Tips</div>
-        <div style="line-height: 1.6;">
-            • Ask about beard styles<br>
-            • Get haircut recommendations<br>
-            • Find outfit color matches<br>
-            • Grooming advice
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+        if st.button("Detect Face Shape & Skin Tone", use_container_width=True):
+            files = {
+                "file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)
+            }
 
+            with st.spinner("Detecting..."):
+                # Face shape
+                try:
+                    r1 = requests.post(
+                        "http://localhost:8000/face-shape/predict",
+                        files=files,
+                        timeout=120
+                    )
+                    if r1.ok:
+                        pred = r1.json().get("prediction", {})
+                        raw_shape = pred.get("class") if isinstance(pred, dict) else pred
+                        shape = normalize_face_shape(raw_shape)
+                        if shape in FACE_OPTIONS:
+                            st.session_state.face_shape = shape
+                            st.success(f"Face shape: {shape}")
+                        else:
+                            st.warning(f"Face shape detected as '{raw_shape}' (not in list)")
+                    else:
+                        st.error(f"Face shape API error: {r1.text}")
+                except Exception as e:
+                    st.error(f"Face shape failed: {e}")
+
+                # Skin tone
+                try:
+                    r2 = requests.post(
+                        "http://localhost:8000/skin-tone/predict",
+                        files=files,
+                        timeout=120
+                    )
+                    if r2.ok:
+                        pred = r2.json().get("prediction", {})
+                        raw_tone = pred.get("class") if isinstance(pred, dict) else pred
+                        tone = normalize_skin_tone(raw_tone)
+                        if tone in SKIN_OPTIONS:
+                            st.session_state.skin_tone = tone
+                            st.success(f"Skin tone: {tone}")
+                        else:
+                            st.warning(f"Skin tone detected as '{raw_tone}' (not in list)")
+                    else:
+                        st.error(f"Skin tone API error: {r2.text}")
+                except Exception as e:
+                    st.error(f"Skin tone failed: {e}")
+
+            st.rerun()
 # ---------- MAIN CHAT AREA ----------
 # Display chat history
 if not st.session_state.messages:
     # Welcome message
     st.markdown('''
     <div class="welcome-container">
-        <div class="welcome-icon">GlowUp</div>
+        <div class="welcome-logo">✨</div>
         <div class="welcome-title">How can I help you look your best?</div>
         <div class="welcome-sub">
             I'm your personal style assistant. Ask me about hairstyles, 
@@ -571,7 +647,9 @@ if prompt := st.chat_input("Ask about hairstyles, outfits, grooming..."):
                 <span class="sources-label">Sources:</span> {tags}
             </div>
             ''', unsafe_allow_html=True)
-
+        if st.button("Clear Chat", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
     except requests.exceptions.ConnectionError:
         st.error("Unable to connect to the server. Please make sure the backend is running.")
     except Exception as e:

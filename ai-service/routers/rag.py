@@ -27,18 +27,23 @@ class QueryRequest(BaseModel):
 def build_question(request: QueryRequest) -> str:
     profile_parts = []
     if request.face_shape:
-        profile_parts.append(f"face shape is {request.face_shape}")
+        profile_parts.append(f"Face shape: {request.face_shape}")
     if request.skin_tone:
-        profile_parts.append(f"skin tone is {request.skin_tone}")
+        profile_parts.append(f"Skin tone: {request.skin_tone}")
     if request.body_type:
-        profile_parts.append(f"body type is {request.body_type}")
+        profile_parts.append(f"Body type: {request.body_type}")
     if request.preferences:
-        profile_parts.append(f"style preference: {request.preferences}")
+        profile_parts.append(f"Style preference: {request.preferences}")
 
-    if profile_parts:
-        profile_text = ", ".join(profile_parts)
-        return f"User profile: {profile_text}. Question: {request.question}"
-    return request.question
+    profile_text = "\n".join(profile_parts) if profile_parts else "No profile provided"
+
+    return f"""
+Answer this user question specifically:
+{request.question}
+
+Use this profile only as extra context:
+{profile_text}
+""".strip()
 
 
 @router.get("/")

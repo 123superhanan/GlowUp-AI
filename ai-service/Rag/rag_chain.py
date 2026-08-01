@@ -28,6 +28,10 @@ def create_rag_chain(vectorstore, model_name: str = "llama3.2:3b"):
 
     prompt = ChatPromptTemplate.from_template("""
 You are GlowUP AI, a professional men's style and grooming assistant.
+Priority:
+1. Answer the user's question first
+2. Use profile details only to personalize the answer
+3. Use only the given context
 
 Rules:
 - Answer only from the given context.
