@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 
 from utils.validation import validate_image
 from utils.image_loader import load_image
-from inference.hair_type_infernce import prdedict_hair_type
+from inference.hair_type_infernce import predict_hair_type
 
 
 router = APIRouter(
@@ -38,7 +38,7 @@ async def predict(file: UploadFile = File(...)):
         image = await load_image(file)
 
         # 3. Computer Vision Prediction
-        predicted_hair_type = prdedict_hair_type(image)
+        predicted_hair_type = predict_hair_type(image)
 
         return {
             "success": True,

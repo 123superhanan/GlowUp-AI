@@ -2,18 +2,18 @@ import torch
 from PIL import Image
 
 # Internal Imports
-from models.cnn import CNN
+from models.cnn import SimpleCNN
 from utils.classes import  HAIR_TYPE_CLASSES
 from utils.preprocess import preprocess_image
 from utils.confidence import get_prediction
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-hair_model = CNN(num_classes=len(HAIR_TYPE_CLASSES))
+hair_model = SimpleCNN(num_classes=len(HAIR_TYPE_CLASSES))
 
 hair_model.load_state_dict(
     torch.load(
-        "models/bald_model.pth",
+        "models/hair_type_model.pth",
         map_location=device
     )
 )
