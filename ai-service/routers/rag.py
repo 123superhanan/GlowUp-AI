@@ -30,8 +30,8 @@ def build_question(request: QueryRequest) -> str:
         profile_parts.append(f"Face shape: {request.face_shape}")
     if request.skin_tone:
         profile_parts.append(f"Skin tone: {request.skin_tone}")
-    if request.body_type:
-        profile_parts.append(f"Body type: {request.body_type}")
+    if request.hair_type:
+        profile_parts.append(f"Hair type: {request.hair_type}")
     if request.preferences:
         profile_parts.append(f"Style preference: {request.preferences}")
 
@@ -66,7 +66,7 @@ def ask_question(request: QueryRequest):
         "user_profile": {
             "face_shape": request.face_shape,
             "skin_tone": request.skin_tone,
-            "body_type": request.body_type,
+            "hair_type": request.hair_type,
             "preferences": request.preferences
         }
     }
