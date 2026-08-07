@@ -9,7 +9,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
+# Custom CSS (your existing CSS here - keeping it as is)
 st.markdown("""
 <style>
     .stApp {
@@ -499,12 +499,32 @@ st.markdown("""
         background: #334155;
     }
 
+    /* Hide Streamlit default elements */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
+    
+    /* Additional dark theme enhancements */
+    .stMarkdown {
+        color: #e2e8f0;
+    }
+    
+    .stSelectbox div[data-baseweb="select"] {
+        background-color: #0d0f12 !important;
+    }
+    
+    .stTextInput input {
+        background-color: #0d0f12 !important;
+        color: #e2e8f0 !important;
+    }
+    
+    /* Loading spinner */
+    .stSpinner > div {
+        border-color: #6366f1 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# SVG Icons
+# SVG Icons (your existing icons - keeping as is)
 LOGO_SVG = """<svg viewBox="0 0 24 24"><path d="M12 2L14.39 8.26L20.65 10.65L14.39 13.04L12 19.3L9.61 13.04L3.35 10.65L9.61 8.26L12 2Z"/></svg>"""
 BOT_SVG = """<svg class="bot-icon" viewBox="0 0 24 24"><path d="M12 2A2 2 0 0 1 14 4C14 4.74 13.6 5.39 13 5.73V7H14A7 7 0 0 1 21 14V16A3 3 0 0 1 18 19H16.8V20A2 2 0 0 1 14.8 22H9.2A2 2 0 0 1 7.2 20V19H6A3 3 0 0 1 3 16V14A7 7 0 0 1 10 7H11V5.73C10.4 5.39 10 4.74 10 4A2 2 0 0 1 12 2M7.5 13A1.5 1.5 0 0 0 6 14.5A1.5 1.5 0 0 0 7.5 16A1.5 1.5 0 0 0 9 14.5A1.5 1.5 0 0 0 7.5 13M16.5 13A1.5 1.5 0 0 0 15 14.5A1.5 1.5 0 0 0 16.5 16A1.5 1.5 0 0 0 18 14.5A1.5 1.5 0 0 0 16.5 13Z"/></svg>"""
 DOC_SVG = """<svg class="doc-icon" viewBox="0 0 24 24"><path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20Z"/></svg>"""
@@ -514,8 +534,9 @@ USER_SVG = """<svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path
 FACE_OPTIONS = ["", "Oval", "Round", "Square", "Rectangular", "Heart", "Diamond"]
 SKIN_OPTIONS = ["", "Fair", "Light", "Medium", "Olive", "Tan", "Deep", "White", "Black", "Brown", "Yellow", "Red", "Pink"]
 BODY_OPTIONS = ["", "Ectomorph", "Mesomorph", "Endomorph"]
+HAIR_OPTIONS = ["Straight", "Wavy", "Curly", "Dreadlocks", "Kinky"]
 
-# Session state
+# Session state initialization
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "face_shape" not in st.session_state:
@@ -528,6 +549,8 @@ if "preferences" not in st.session_state:
     st.session_state.preferences = ""
 if "uploaded_image" not in st.session_state:
     st.session_state.uploaded_image = None
+if "hair_type" not in st.session_state:
+    st.session_state.hair_type = "Straight"
 
 # ---------- SIDEBAR ----------
 with st.sidebar:
@@ -572,6 +595,12 @@ with st.sidebar:
         index=BODY_OPTIONS.index(st.session_state.body_type) if st.session_state.body_type in BODY_OPTIONS else 0
     )
 
+    st.session_state.hair_type = st.selectbox(
+        "Hair Type / Structure",
+        HAIR_OPTIONS,
+        index=HAIR_OPTIONS.index(st.session_state.hair_type) if st.session_state.hair_type in HAIR_OPTIONS else 0
+    )
+
     st.session_state.preferences = st.text_input(
         "Style Preferences",
         value=st.session_state.preferences,
@@ -587,14 +616,13 @@ with st.sidebar:
         # Detect button with custom class
         col1, col2 = st.columns([3, 1])
         with col1:
-            if st.button(" Detect Face & Skin", key="detect", use_container_width=True):
-                with st.spinner("Analyzing your photo..."):
-                    files = {
-                        "file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)
-                    }
-
-                    # Face shape
+            if st.button(" ⚡ Detect Full Features", key="detect", use_container_width=True):
+                with st.spinner("Analyzing your photo across all AI models..."):
+                    
+                    # 1. Face shape API
                     try:
+                        uploaded_file.seek(0)
+                        files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
                         r1 = requests.post("http://localhost:8000/face-shape/predict", files=files, timeout=60)
                         if r1.ok:
                             pred = r1.json().get("prediction", {})
@@ -607,8 +635,10 @@ with st.sidebar:
                     except Exception as e:
                         st.warning(f"Face shape error: {e}")
 
-                    # Skin tone
+                    # 2. Skin tone API
                     try:
+                        uploaded_file.seek(0)
+                        files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
                         r2 = requests.post("http://localhost:8000/skin-tone/predict", files=files, timeout=60)
                         if r2.ok:
                             pred = r2.json().get("prediction", {})
@@ -620,6 +650,40 @@ with st.sidebar:
                             st.warning("Skin tone detection failed")
                     except Exception as e:
                         st.warning(f"Skin tone error: {e}")
+
+                    # 3. Bald Status API
+                    try:
+                        uploaded_file.seek(0)
+                        files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
+                        r3 = requests.post("http://localhost:8000/bald/predict", files=files, timeout=60)
+                        if r3.ok:
+                            data = r3.json()
+                            bald_res = data.get("predicted_bald_status", data.get("prediction", {}))
+                            bald_class = bald_res.get("class") if isinstance(bald_res, dict) else bald_res
+                            if bald_class:
+                                st.session_state.body_type = str(bald_class).title()
+                                st.success(f" Scalp Status: {st.session_state.body_type}")
+                        else:
+                            st.warning("Bald status detection failed")
+                    except Exception as e:
+                        st.warning(f"Bald status error: {e}")
+
+                    # 4. Hair Type CNN API
+                    try:
+                        uploaded_file.seek(0)
+                        files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
+                        r4 = requests.post("http://localhost:8000/hair-type/predict", files=files, timeout=60)
+                        if r4.ok:
+                            data = r4.json()
+                            hair_res = data.get("predicted_hair_type", data.get("prediction", {}))
+                            hair_class = hair_res.get("class") if isinstance(hair_res, dict) else hair_res
+                            if hair_class:
+                                st.session_state.hair_type = str(hair_class).title()
+                                st.success(f" Hair Structure: {st.session_state.hair_type}")
+                        else:
+                            st.warning("Hair type detection failed")
+                    except Exception as e:
+                        st.warning(f"Hair type error: {e}")
 
                 st.rerun()
         
@@ -719,6 +783,9 @@ if prompt := st.chat_input("Ask about hairstyles, outfits, grooming..."):
     full_answer = ""
     sources = []
 
+    # Get hair context value
+    hair_context_value = st.session_state.hair_type
+
     try:
         response = requests.post(
             "http://localhost:8000/rag/ask/stream",
@@ -727,6 +794,7 @@ if prompt := st.chat_input("Ask about hairstyles, outfits, grooming..."):
                 "face_shape": st.session_state.face_shape or None,
                 "skin_tone": st.session_state.skin_tone or None,
                 "body_type": st.session_state.body_type or None,
+                "hair_type": hair_context_value or None,
                 "preferences": st.session_state.preferences or None
             },
             stream=True,
