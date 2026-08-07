@@ -329,9 +329,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-**Your Name** - [@yourtwitter](https://twitter.com/yourtwitter) - email@example.com
+**Your Name** - [@Abdul hnanan](https://twitter.com/yourtwitter) - abdulhananabbasi50@gmail.com
 
-Project Link: [https://github.com/yourusername/glowup-ai](https://github.com/yourusername/glowup-ai)
+Project Link: [https://github.com/123superhanan/glowup-ai](https://github.com/123superhanan/glowup-ai)
 
 ---
 
