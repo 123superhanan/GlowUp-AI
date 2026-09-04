@@ -22,6 +22,8 @@
 - **Real personalization** - No hardcoded recommendations; everything is data-driven
 
 ---
+<img width="1024" height="644" alt="image" src="https://github.com/user-attachments/assets/1da4e5fd-9cff-4321-94ec-4d11da7bad6b" />
+
 
 ## ✨ Features
 
