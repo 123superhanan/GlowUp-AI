@@ -23,6 +23,7 @@
 
 ---
 <img width="1024" height="644" alt="image" src="https://github.com/user-attachments/assets/1da4e5fd-9cff-4321-94ec-4d11da7bad6b" />
+<img width="1024" height="645" alt="image" src="https://github.com/user-attachments/assets/2fde54d2-6428-4e57-9922-9c80a07a472e" />
 
 
 ## ✨ Features
