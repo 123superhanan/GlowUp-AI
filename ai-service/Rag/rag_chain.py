@@ -1,8 +1,11 @@
-from langchain_ollama import ChatOllama
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-
-
 def format_docs_with_sources(docs):
     content = "\n\n".join(doc.page_content for doc in docs)
 
@@ -15,10 +18,23 @@ def format_docs_with_sources(docs):
     return content, list(sources)
 
 
-def create_rag_chain(vectorstore, model_name: str = "llama3.2:3b"):
-    llm = ChatOllama(
+# Updated to use Google's latest recommended high-performance engine
+def create_rag_chain(vectorstore, model_name: str = "gemini-3.6-flash", gemini_api_key: str = None):
+
+    # Self-healing fallback: If no key is passed directly, pull it automatically from environment
+    resolved_api_key = gemini_api_key or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+
+    if not resolved_api_key:
+        raise ValueError(
+            "API key required for Gemini Developer API. Provide gemini_api_key parameter "
+            "or set GEMINI_API_KEY / GOOGLE_API_KEY environment variables."
+        )
+
+    # Correct parameter argument for modern ChatGoogleGenerativeAI is 'api_key'
+    llm = ChatGoogleGenerativeAI(
         model=model_name,
-        temperature=0.3
+        temperature=0.3,
+        api_key=resolved_api_key   
     )
 
     retriever = vectorstore.as_retriever(
@@ -93,9 +109,11 @@ Answer:
             yield chunk
 
         # Send sources at the end
+               # Send sources at the end
         yield {
             "type": "sources",
             "sources": sources
         }
 
+    # This should be the absolute end of create_rag_chain function
     return rag_with_sources, rag_stream
