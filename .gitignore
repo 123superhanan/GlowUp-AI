@@ -36,3 +36,4 @@ Thumbs.db
 
 # Mobile
 frontend/.expo/
+ai-service/Rag/chroma_db/
